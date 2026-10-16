@@ -1,0 +1,184 @@
+{
+  "_doc": "Edit this file to change the watchlist. class: equity|index|crypto|fx|macro. source: yahoo (symbol = Yahoo chart symbol), coingecko (symbol = CoinGecko coin id), fred (symbol = FRED series id).",
+  "assets": [
+    {
+      "id": "TSLA",
+      "name": "Tesla",
+      "class": "equity",
+      "source": "yahoo",
+      "symbol": "TSLA"
+    },
+    {
+      "id": "NVDA",
+      "name": "NVIDIA",
+      "class": "equity",
+      "source": "yahoo",
+      "symbol": "NVDA"
+    },
+    {
+      "id": "PLTR",
+      "name": "Palantir",
+      "class": "equity",
+      "source": "yahoo",
+      "symbol": "PLTR"
+    },
+    {
+      "id": "AMZN",
+      "name": "Amazon",
+      "class": "equity",
+      "source": "yahoo",
+      "symbol": "AMZN"
+    },
+    {
+      "id": "SEV",
+      "name": "SEV",
+      "class": "equity",
+      "source": "yahoo",
+      "symbol": "SEV"
+    },
+    {
+      "id": "SPCX",
+      "name": "SPCX",
+      "class": "equity",
+      "source": "yahoo",
+      "symbol": "SPCX"
+    },
+    {
+      "id": "AAPL",
+      "name": "Apple",
+      "class": "equity",
+      "source": "yahoo",
+      "symbol": "AAPL"
+    },
+    {
+      "id": "MSFT",
+      "name": "Microsoft",
+      "class": "equity",
+      "source": "yahoo",
+      "symbol": "MSFT"
+    },
+    {
+      "id": "SPY",
+      "name": "SPDR S&P 500 ETF",
+      "class": "index",
+      "source": "yahoo",
+      "symbol": "SPY"
+    },
+    {
+      "id": "QQQ",
+      "name": "Invesco QQQ",
+      "class": "index",
+      "source": "yahoo",
+      "symbol": "QQQ"
+    },
+    {
+      "id": "SPX",
+      "name": "S&P 500",
+      "class": "index",
+      "source": "yahoo",
+      "symbol": "^GSPC"
+    },
+    {
+      "id": "NDX",
+      "name": "Nasdaq 100",
+      "class": "index",
+      "source": "yahoo",
+      "symbol": "^NDX"
+    },
+    {
+      "id": "VIX",
+      "name": "CBOE VIX",
+      "class": "index",
+      "source": "yahoo",
+      "symbol": "^VIX"
+    },
+    {
+      "id": "GOLD",
+      "name": "Gold futures",
+      "class": "index",
+      "source": "yahoo",
+      "symbol": "GC=F"
+    },
+    {
+      "id": "BTC",
+      "name": "Bitcoin",
+      "class": "crypto",
+      "source": "coingecko",
+      "symbol": "bitcoin"
+    },
+    {
+      "id": "ETH",
+      "name": "Ethereum",
+      "class": "crypto",
+      "source": "coingecko",
+      "symbol": "ethereum"
+    },
+    {
+      "id": "SOL",
+      "name": "Solana",
+      "class": "crypto",
+      "source": "coingecko",
+      "symbol": "solana"
+    },
+    {
+      "id": "EURUSD",
+      "name": "EUR/USD",
+      "class": "fx",
+      "source": "yahoo",
+      "symbol": "EURUSD=X"
+    },
+    {
+      "id": "USDJPY",
+      "name": "USD/JPY",
+      "class": "fx",
+      "source": "yahoo",
+      "symbol": "JPY=X"
+    },
+    {
+      "id": "DXY",
+      "name": "US Dollar Index",
+      "class": "fx",
+      "source": "yahoo",
+      "symbol": "DX-Y.NYB"
+    },
+    {
+      "id": "DGS10",
+      "name": "US 10Y Treasury yield",
+      "class": "macro",
+      "source": "fred",
+      "symbol": "DGS10"
+    },
+    {
+      "id": "T10Y2Y",
+      "name": "10Y\u20132Y spread",
+      "class": "macro",
+      "source": "fred",
+      "symbol": "T10Y2Y"
+    },
+    {
+      "id": "DFF",
+      "name": "Fed funds effective rate",
+      "class": "macro",
+      "source": "fred",
+      "symbol": "DFF"
+    }
+  ],
+  "feeds": [
+    {
+      "name": "MarketWatch Top Stories",
+      "url": "https://feeds.content.dowjones.io/public/rss/mw_topstories"
+    },
+    {
+      "name": "WSJ Markets",
+      "url": "https://feeds.a.dj.com/rss/RSSMarketsMain.xml"
+    },
+    {
+      "name": "CNBC Markets",
+      "url": "https://www.cnbc.com/id/100003114/device/rss/rss.html"
+    },
+    {
+      "name": "Federal Reserve",
+      "url": "https://www.federalreserve.gov/feeds/press_all.xml"
+    }
+  ]
+}

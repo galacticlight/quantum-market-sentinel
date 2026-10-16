@@ -1,0 +1,498 @@
+{
+ "asOf": "2026-10-15 close (US/Eastern 16:00 = 13:00 PT); compiled 2026-10-15 22:50 PT",
+ "compiledBy": "Researcher bot (Grok Bots), seed snapshot",
+ "note": "Point-in-time research snapshot. Every figure carries its source URL. Composite scores are analyst-judged inputs, not fitted models. Informational only; not financial advice.",
+ "methodology": {
+  "composite": "S = 50 + 50*tanh(0.4*N + 0.35*F + 0.25*M)  (components in [-1,1]; scores above are analyst-judged inputs, not fitted)",
+  "news_polarity": "N = sum_i p_i*r_i*exp(-age_i/tau) / sum_i r_i*exp(-age_i/tau), p_i in [-1,1], r_i source reliability, tau=7d",
+  "fundamentals": "F = tanh(mean_k z_k), z_k = (x_k - mu_peer)/sigma_peer over revenue YoY, gross/op margin, FCF yield, -log(P/S)",
+  "momentum": "M = tanh( (r_21d - r_63d/3) / sigma_21d )",
+  "labels": "<40 bearish, 40-60 neutral, >60 bullish"
+ },
+ "visualizationMath": {
+  "sentiment_energy": "E_t = sum_i w_i * s_i^2 * exp(-(t-t_i)/tau)  (polarity-agnostic intensity; signed variant E± = sum w_i s_i|s_i| e^{-dt/tau})",
+  "velocity_acceleration": "v_t = (S_t - S_{t-h})/h ; a_t = (S_t - 2S_{t-h} + S_{t-2h})/h^2 ; EMA-smooth first",
+  "correlation_force_layout": "rho_ij = rolling 60d Pearson of log returns; d_ij = sqrt(2(1-rho_ij)); spring length d_ij, MST (Mantegna) for edges",
+  "pca_eigenportfolio": "C = V Λ V^T; plot loadings on v1,v2; explained var λ_k/Σλ; absorption ratio AR = Σ_{k<=n/5} λ_k / Σ λ",
+  "news_entropy": "H = -Σ_c p_c log p_c, c∈{pos,neu,neg}; uncertainty U = H/log 3",
+  "phase_space": "x = S_t (sentiment), y = M_t (momentum); trail last 30 points; quadrant = regime",
+  "hurst": "R/S: E[R/S](n) ~ c n^H; H>0.5 trending",
+  "vol_regime": "sigma_t^2 = ω + α r_{t-1}^2 + β σ_{t-1}^2 (GARCH(1,1)); regime = σ_t vs rolling median",
+  "anomaly": "z = (r_t - μ)/σ, robust: (x - median)/(1.4826*MAD); flag |z|>3"
+ },
+ "companies": [
+  {
+   "ticker": "TSLA",
+   "name": "Tesla, Inc.",
+   "listing_status": "Listed, Nasdaq GS, trading",
+   "as_of": "2026-10-15T16:00:00-04:00 (13:00 PT close)",
+   "price": {
+    "value": 362.44,
+    "currency": "USD",
+    "source": "https://www.wsj.com/market-data/stock/tsla"
+   },
+   "market_cap": {
+    "value": 1430000000000,
+    "source": "https://stockanalysis.com/stocks/tsla/market-cap/"
+   },
+   "perf": {
+    "d1": -1.29,
+    "d5": -3.35,
+    "m1": 1.64,
+    "m3": -8.12,
+    "ytd": -19.41,
+    "source": "https://www.wsj.com/market-data/stock/tsla"
+   },
+   "pe": {
+    "ttm": 336.75,
+    "eps_ttm": 1.08,
+    "source": "https://www.wsj.com/market-data/stock/tsla"
+   },
+   "revenue": {
+    "latest_quarter": "Q3 2026 financials not yet reported (due Oct 21, 2026 after close)",
+    "fy2025_revenue": 94830000000,
+    "fy2025_yoy_pct": -2.93,
+    "q3_consensus_revenue": 27800000000,
+    "q3_consensus_eps": 0.44,
+    "source": [
+     "https://www.wsj.com/market-data/stock/tsla",
+     "https://finance.yahoo.com/markets/stocks/articles/tesla-gears-report-q3-earnings-125800623.html"
+    ]
+   },
+   "growth_metrics": {
+    "q3_2026_deliveries": 486532,
+    "deliveries_yoy_pct": -2.1,
+    "deliveries_qoq_pct": 1.3,
+    "q3_storage_gwh": 13.7,
+    "source": "https://ir.tesla.com/press-release/tesla-third-quarter-2026-production-deliveries-and-deployments"
+   },
+   "news": [
+    {
+     "date": "2026-10-02",
+     "headline": "Tesla stock jumps 5% on better-than-expected vehicle deliveries report",
+     "source": "CNBC",
+     "url": "https://www.cnbc.com/2026/10/02/tesla-tsla-q3-2026-vehicle-delivery-production.html",
+     "likely_impact": "positive"
+    },
+    {
+     "date": "2026-10-02",
+     "headline": "Tesla Third Quarter 2026 Production, Deliveries & Deployments (486,532 delivered, 13.7 GWh)",
+     "source": "Tesla IR",
+     "url": "https://ir.tesla.com/press-release/tesla-third-quarter-2026-production-deliveries-and-deployments",
+     "likely_impact": "mixed: -2.1% YoY, +1.3% QoQ"
+    },
+    {
+     "date": "2026-10-13",
+     "headline": "Tesla Gears Up to Report Q3 Earnings: Here's What to Expect (consensus EPS $0.44, rev $27.8B)",
+     "source": "Zacks via Yahoo Finance",
+     "url": "https://finance.yahoo.com/markets/stocks/articles/tesla-gears-report-q3-earnings-125800623.html",
+     "likely_impact": "event risk Oct 21"
+    }
+   ],
+   "sentiment": {
+    "score": 45,
+    "label": "neutral signal",
+    "reasoning": "Delivery beat vs weak YoY, YTD -19%, P/E ~337 and FY25 revenue/net income declines; Oct 21 earnings is the binary.",
+    "components": {
+     "news": 0.25,
+     "fundamentals": -0.5,
+     "momentum": -0.35
+    }
+   }
+  },
+  {
+   "ticker": "NVDA",
+   "name": "NVIDIA Corporation",
+   "listing_status": "Listed, Nasdaq GS, trading",
+   "as_of": "2026-10-15T16:00:00-04:00 (13:00 PT close)",
+   "price": {
+    "value": 217.23,
+    "currency": "USD",
+    "source": "https://investor.nvidia.com/stock-info/stock-quote-and-chart/default.aspx"
+   },
+   "market_cap": {
+    "value": 5250000000000,
+    "source": "https://gomarketcap.com/companies/NASDAQ-NVDA/nvidia-corp"
+   },
+   "perf": {
+    "d1": -1.84,
+    "mtd": -5.5,
+    "ytd": null,
+    "note": "ytd not retrieved; MTD from StatMuse",
+    "source": "https://www.statmuse.com/money/ask/nvda-stock-october-2026"
+   },
+   "pe": {
+    "ttm": null,
+    "note": "not retrieved"
+   },
+   "revenue": {
+    "latest_quarter": "Q2 FY2027 (ended Jul 26, 2026)",
+    "revenue": 96221000000,
+    "yoy_pct": 106,
+    "data_center": 89000000000,
+    "dc_yoy_pct": 117,
+    "gross_margin_pct": 75,
+    "next_q_guide": 108000000000,
+    "source": "https://nvidianews.nvidia.com/news/nvidia-announces-financial-results-for-second-quarter-fiscal-2027"
+   },
+   "growth_metrics": {
+    "revenue_ttm": 302970000000,
+    "next_earnings": "2026-11-18",
+    "source": "https://gomarketcap.com/companies/NASDAQ-NVDA/nvidia-corp"
+   },
+   "news": [
+    {
+     "date": "2026-08-26",
+     "headline": "NVIDIA Announces Financial Results for Second Quarter Fiscal 2027 ($96.2B, +106%)",
+     "source": "NVIDIA Newsroom",
+     "url": "https://nvidianews.nvidia.com/news/nvidia-announces-financial-results-for-second-quarter-fiscal-2027",
+     "likely_impact": "positive"
+    },
+    {
+     "date": "2026-10-05",
+     "headline": "Nvidia stock hits all-time high, as market cap closes in on $6 trillion",
+     "source": "Yahoo Finance",
+     "url": "https://finance.yahoo.com/technology/article/nvidia-stock-hits-all-time-high-as-market-cap-closes-in-on-6-trillion-141332917.html",
+     "likely_impact": "positive"
+    },
+    {
+     "date": "2026-10-08",
+     "headline": "Nvidia, Oracle, other AI stocks sink on OpenAI revenue report",
+     "source": "CNBC",
+     "url": "https://www.cnbc.com/2026/10/08/open-ai-revenue-nvidia-oracle-coreweave.html",
+     "likely_impact": "negative: AI demand-durability doubt"
+    },
+    {
+     "date": "2026-10-12",
+     "headline": "Nvidia Nears $6 Trillion Market Cap as Relentless AI Chip Demand Powers Record Growth",
+     "source": "Yahoo Finance",
+     "url": "https://finance.yahoo.com/technology/ai/articles/nvidia-nears-6-trillion-market-125344955.html",
+     "likely_impact": "positive"
+    }
+   ],
+   "sentiment": {
+    "score": 70,
+    "label": "positive signal",
+    "reasoning": "Triple-digit growth, 75% GM, $108B guide; tempered by ~9% pullback from Oct 6 high after OpenAI revenue report.",
+    "components": {
+     "news": 0.35,
+     "fundamentals": 0.9,
+     "momentum": -0.3
+    }
+   }
+  },
+  {
+   "ticker": "SEV",
+   "name": "Aptera Motors Corp.",
+   "listing_status": "Listed, Nasdaq Capital Market (Class B), trading",
+   "as_of": "2026-10-15T16:00:00-04:00 (13:00 PT close)",
+   "price": {
+    "value": 1.44,
+    "currency": "USD",
+    "source": "https://stockscan.io/stocks/SEV/price-history"
+   },
+   "market_cap": {
+    "value": null,
+    "source": "https://www.stocktitan.net/overview/SEV/"
+   },
+   "perf": {
+    "d1": -4,
+    "mtd": -30.77,
+    "ytd_approx": -65,
+    "source": [
+     "https://stockscan.io/stocks/SEV/price-history",
+     "https://www.stocktitan.net/overview/SEV/"
+    ]
+   },
+   "pe": {
+    "ttm": null,
+    "note": "pre-revenue, negative earnings"
+   },
+   "revenue": {
+    "latest_quarter": "pre-revenue",
+    "revenue": null,
+    "note": "no production revenue"
+   },
+   "growth_metrics": {
+    "capital_to_start_production": 25000000,
+    "prior_estimate": "40-45M",
+    "first_vehicles": "40 by end-2026, deliveries early 2027, financing-contingent",
+    "market_cap_note": "~$63.4M at $1.55 (Oct 14, StockTitan; 28.6M shares). Oct 15 figure not sourced -> null",
+    "source": "https://aptera.us/reduces-capital-requirements-for-production/"
+   },
+   "news": [
+    {
+     "date": "2026-10-01",
+     "headline": "Aptera Significantly Reduces Estimated Capital Requirements for Production",
+     "source": "Aptera / Nasdaq",
+     "url": "https://www.nasdaq.com/press-release/aptera-significantly-reduces-estimated-capital-requirements-production-2026-10-01",
+     "likely_impact": "mixed; stock fell 18% that day"
+    },
+    {
+     "date": "2026-10-13",
+     "headline": "SEC Form EFFECT / S-3 shelf filings (dilution capacity)",
+     "source": "SEC EDGAR",
+     "url": "https://www.sec.gov/Archives/edgar/data/1786471/000149315226045354/forms-3.htm",
+     "likely_impact": "negative: dilution"
+    },
+    {
+     "date": "2025-10 (background)",
+     "headline": "Aptera executes $75M equity line of credit with New Circle Capital affiliates",
+     "source": "Aptera",
+     "url": "https://aptera.us/equity-line-of-credit/",
+     "likely_impact": "negative: dilution overhang"
+    }
+   ],
+   "sentiment": {
+    "score": 22,
+    "label": "negative signal",
+    "reasoning": "Pre-revenue, -65% YTD, -31% MTD, financing-dependent; reduced capex need is the only positive.",
+    "components": {
+     "news": -0.3,
+     "fundamentals": -0.8,
+     "momentum": -0.9
+    }
+   }
+  },
+  {
+   "ticker": "PLTR",
+   "name": "Palantir Technologies Inc.",
+   "listing_status": "Listed, Nasdaq, trading",
+   "as_of": "2026-10-15T16:00:00-04:00 (13:00 PT close)",
+   "price": {
+    "value": 200.5,
+    "currency": "USD",
+    "source": "https://stockanalysis.com/stocks/pltr/history/"
+   },
+   "market_cap": {
+    "value": 481810000000,
+    "source": "https://companiesmarketcap.com/palantir/marketcap/"
+   },
+   "perf": {
+    "d1": -0.23,
+    "y1": 11.62,
+    "source": "https://companiesmarketcap.com/palantir/marketcap/"
+   },
+   "pe": {
+    "ttm": null,
+    "note": "not retrieved"
+   },
+   "revenue": {
+    "latest_quarter": "Q2 2026",
+    "revenue": 1935000000,
+    "yoy_pct": 93,
+    "us_commercial": 764000000,
+    "us_comm_yoy_pct": 149,
+    "fy2026_guide": "8.150-8.158B (~82% YoY)",
+    "source": "https://investors.palantir.com/news-details/2026/Palantir-Reports-Q2-2026-U-S--Comm-Revenue-Growth-of-149-YY-and-Revenue-Growth-of-93-YY-Raises-FY-2026-Revenue-Guidance-to-82-YY-Growth-and-U-S--Comm-Revenue-Guidance-to-134-YY-Crushing-Consensus-Expectations/"
+   },
+   "growth_metrics": {
+    "revenue_ttm": 6160000000,
+    "rule_of_40": 155,
+    "next_earnings": "2026-11-02",
+    "source": "https://gomarketcap.com/companies/NASDAQ-PLTR/palantir-technologies-inc"
+   },
+   "news": [
+    {
+     "date": "2026-08-03",
+     "headline": "Palantir Reports Q2 2026 revenue +93% Y/Y, raises FY guide",
+     "source": "Palantir IR",
+     "url": "https://investors.palantir.com/news-details/2026/Palantir-Reports-Q2-2026-U-S--Comm-Revenue-Growth-of-149-YY-and-Revenue-Growth-of-93-YY-Raises-FY-2026-Revenue-Guidance-to-82-YY-Growth-and-U-S--Comm-Revenue-Guidance-to-134-YY-Crushing-Consensus-Expectations/",
+     "likely_impact": "positive"
+    },
+    {
+     "date": "2026-10-08",
+     "headline": "Goldman Sachs upgrades Palantir stock to Buy at USD 230 target",
+     "source": "ad-hoc-news (citing IBTimes UK)",
+     "url": "https://www.ad-hoc-news.de/boerse/news/corporate-news/goldman-sachs-upgrades-palantir-stock-to-buy-at-usd-230-target/70323778",
+     "likely_impact": "positive"
+    },
+    {
+     "date": "2026-10-14",
+     "headline": "PLTR -3.69% session (209 -> 201 over Oct 12-15)",
+     "source": "StockAnalysis",
+     "url": "https://stockanalysis.com/stocks/pltr/history/",
+     "likely_impact": "negative short-term"
+    }
+   ],
+   "sentiment": {
+    "score": 66,
+    "label": "positive signal",
+    "reasoning": "Hypergrowth + raised guide + upgrade; offset by extreme valuation (~78x TTM sales) and beta 2.64.",
+    "components": {
+     "news": 0.5,
+     "fundamentals": 0.6,
+     "momentum": -0.2
+    }
+   }
+  },
+  {
+   "ticker": "AMZN",
+   "name": "Amazon.com, Inc.",
+   "listing_status": "Listed, Nasdaq GS, trading",
+   "as_of": "2026-10-15T16:00:00-04:00 (13:00 PT close)",
+   "price": {
+    "value": 254.76,
+    "currency": "USD",
+    "source": "https://www.wsj.com/market-data/quotes/AMZN/historical-prices"
+   },
+   "market_cap": {
+    "value": 2747000000000,
+    "source": "https://www.finhacker.cz/en/stocks/amazon-market-cap/"
+   },
+   "perf": {
+    "d1": 0.27,
+    "mtd_from_sep30_cap": 2.23,
+    "ytd_cap": 11.3,
+    "source": "https://www.finhacker.cz/en/stocks/amazon-market-cap/"
+   },
+   "pe": {
+    "ttm": null,
+    "note": "not retrieved"
+   },
+   "revenue": {
+    "latest_quarter": "Q2 2026",
+    "revenue": 200600000000,
+    "yoy_pct": 20,
+    "aws": 42200000000,
+    "aws_yoy_pct": 37,
+    "operating_income": 27500000000,
+    "q3_guide": "197-202B (+9-12%)",
+    "source": "https://ir.aboutamazon.com/news-release/news-release-details/2026/Amazon-com-Announces-Second-Quarter-Results/"
+   },
+   "growth_metrics": {
+    "aws_run_rate": 169000000000,
+    "aws_op_margin_pct": 39.4,
+    "ttm_fcf": -7600000000,
+    "source": "https://finance.yahoo.com/markets/stocks/articles/amazon-stock-poised-rally-ai-134000206.html"
+   },
+   "news": [
+    {
+     "date": "2026-07-30",
+     "headline": "Amazon Q2 2026 earnings: AWS grows 37%, revenue tops $200B",
+     "source": "Yahoo Finance",
+     "url": "https://finance.yahoo.com/markets/stocks/articles/amazon-q2-2026-earnings-aws-204411872.html",
+     "likely_impact": "positive"
+    },
+    {
+     "date": "2026-09/10",
+     "headline": "Is Amazon Stock Poised to Rally on AI Services Revenue Expansion? (Bedrock launches; TTM FCF -$7.6B)",
+     "source": "Zacks via Yahoo Finance",
+     "url": "https://finance.yahoo.com/markets/stocks/articles/amazon-stock-poised-rally-ai-134000206.html",
+     "likely_impact": "mixed"
+    },
+    {
+     "date": "2026-10-08",
+     "headline": "AI stocks sink on OpenAI revenue report (sector read-through)",
+     "source": "CNBC",
+     "url": "https://www.cnbc.com/2026/10/08/open-ai-revenue-nvidia-oracle-coreweave.html",
+     "likely_impact": "negative sector"
+    }
+   ],
+   "sentiment": {
+    "score": 64,
+    "label": "positive signal",
+    "reasoning": "AWS re-acceleration and margin expansion vs negative FCF from AI capex and soft Q3 guide.",
+    "components": {
+     "news": 0.3,
+     "fundamentals": 0.55,
+     "momentum": -0.1
+    }
+   }
+  },
+  {
+   "ticker": "SPCX",
+   "name": "Space Exploration Technologies Corp. (SpaceX)",
+   "listing_status": "Listed, Nasdaq, IPO Jun 12, 2026, trading",
+   "as_of": "2026-10-15T16:00:00-04:00 (13:00 PT close)",
+   "price": {
+    "value": 148.62,
+    "currency": "USD",
+    "source": "https://stockanalysis.com/stocks/spcx/"
+   },
+   "market_cap": {
+    "value": 2020000000000,
+    "source": "https://stockanalysis.com/stocks/spcx/"
+   },
+   "perf": {
+    "d1": -2.33,
+    "y1_since_ipo": -7.7,
+    "range_52w": "104.83-225.64",
+    "source": [
+     "https://stockanalysis.com/stocks/spcx/",
+     "https://nexqual.com/SPCX"
+    ]
+   },
+   "pe": {
+    "ttm": null,
+    "forward": 94.37,
+    "eps_ttm": -2.27,
+    "source": "https://stockanalysis.com/stocks/spcx/"
+   },
+   "revenue": {
+    "latest_quarter": "Q2 2026",
+    "revenue": 7810000000,
+    "yoy_pct": 92,
+    "connectivity": 4300000000,
+    "ai": 2560000000,
+    "space": 960000000,
+    "capex": 18370000000,
+    "ai_capex": 15830000000,
+    "source": "https://finance.yahoo.com/technology/ai/articles/spacex-spcx-starlink-carry-ai-121038220.html"
+   },
+   "growth_metrics": {
+    "starlink_subs": 12000000,
+    "subs_yoy": "6.0M->12.0M",
+    "revenue_ttm": 23040000000,
+    "net_income_ttm": -8890000000,
+    "cash": 100010000000,
+    "next_earnings": "2026-11-03 (Nexqual) / 2026-11-17 (StockAnalysis est) - conflicting",
+    "lockup_release": "reported Oct 24 (search synthesis, not independently verified)",
+    "source": [
+     "https://nexqual.com/SPCX",
+     "https://stockanalysis.com/stocks/spcx/"
+    ]
+   },
+   "news": [
+    {
+     "date": "2026-10-07",
+     "headline": "Should You Buy SpaceX Stock in October? (compute hosting deals; ~$2T valuation)",
+     "source": "Motley Fool",
+     "url": "https://www.fool.com/investing/2026/10/07/should-you-buy-spacex-stock-in-october/",
+     "likely_impact": "mixed"
+    },
+    {
+     "date": "2026-10",
+     "headline": "SpaceX (SPCX): Can Starlink Carry the AI Bill?",
+     "source": "Yahoo Finance",
+     "url": "https://finance.yahoo.com/technology/ai/articles/spacex-spcx-starlink-carry-ai-121038220.html",
+     "likely_impact": "mixed: growth vs capex"
+    },
+    {
+     "date": "2026-10",
+     "headline": "SpaceX restricts Starlink operations in Ukraine, Reuters reports",
+     "source": "StockAnalysis (Reuters)",
+     "url": "https://stockanalysis.com/stocks/spcx/",
+     "likely_impact": "negative: geopolitical/regulatory"
+    },
+    {
+     "date": "2026-10-13",
+     "headline": "SPCX equity research: price 23% above base-case fair value",
+     "source": "Beating the Bull",
+     "url": "https://beatingthebull.com/reports/SPCX_SpaceX_Report_13_October_2026.pdf",
+     "likely_impact": "negative valuation"
+    }
+   ],
+   "sentiment": {
+    "score": 52,
+    "label": "neutral signal",
+    "reasoning": "+92% revenue and Starlink scale vs losses, $18B quarterly capex, ~94x fwd P/E, lockup overhang.",
+    "components": {
+     "news": 0.05,
+     "fundamentals": 0.2,
+     "momentum": -0.25
+    }
+   }
+  }
+ ]
+}
