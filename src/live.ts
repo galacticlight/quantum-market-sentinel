@@ -100,7 +100,7 @@ export function setupNewsRefresh(s: Snap, render: () => void) {
   const tag = (t: string) => tickers.filter((a) => new RegExp(`\\b(${a.id}|${a.name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})\\b`, 'i').test(t)).map((a) => a.id);
   const merge = (items: News[]) => {
     const seen = new Set(s.news.map((n) => n.title.toLowerCase())); let added = 0;
-    for (const n of items) { const k = n.title.toLowerCase(); if (!seen.has(k)) { seen.add(k); (n as any).fresh = true; s.news.push(n); added++; } }
+    for (const raw of items) { const k = raw.title.toLowerCase(); if (!seen.has(k)) { seen.add(k); const n: News = { ...raw, ...scoreHeadline(raw.title), tags: tag(raw.title) }; (n as any).fresh = true; s.news.push(n); added++; } }
     s.news.sort((a, b) => (b.date || '').localeCompare(a.date || '')); s.news.splice(80);
     return added;
   };
