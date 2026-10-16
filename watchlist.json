@@ -31,14 +31,14 @@
     },
     {
       "id": "SEV",
-      "name": "SEV",
+      "name": "Aptera Motors",
       "class": "equity",
       "source": "yahoo",
       "symbol": "SEV"
     },
     {
       "id": "SPCX",
-      "name": "SPCX",
+      "name": "SpaceX",
       "class": "equity",
       "source": "yahoo",
       "symbol": "SPCX"

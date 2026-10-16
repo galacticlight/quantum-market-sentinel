@@ -1,6 +1,4 @@
 import './style.css';
-import 'katex/dist/katex.min.css';
-import katex from 'katex';
 import * as d3 from 'd3';
 import dossier from './dossier.json';
 
@@ -63,7 +61,8 @@ function sentinel(s: Snap) {
 function spark(v: number[]) {
   const w = 110, h = 28, x = d3.scaleLinear([0, v.length - 1], [0, w]), y = d3.scaleLinear(d3.extent(v) as [number, number], [h - 2, 2]);
   const up = v.at(-1)! >= v[0];
-  return `<svg width="${w}" height="${h}" aria-hidden="true"><path d="${d3.line<number>((_, i) => x(i), (d) => y(d))(v)}" fill="none" stroke="${up ? '#3dffa8' : '#ff5c7a'}" stroke-width="1.5"/></svg>`;
+  const chg = v[0] ? (v.at(-1)! / v[0] - 1) * 100 : 0;
+  return `<svg width="${w}" height="${h}" role="img" aria-label="90-day trend ${up ? 'up' : 'down'} ${Math.abs(chg).toFixed(1)}%"><path d="${d3.line<number>((_, i) => x(i), (d) => y(d))(v)}" fill="none" stroke="${up ? '#3dffa8' : '#ff5c7a'}" stroke-width="1.5"/></svg>`;
 }
 function watchlist(s: Snap) {
   const cols: [string, string, (a: Asset) => number | string | null][] = [
@@ -195,7 +194,8 @@ function dossierPanel(s: Snap) {
 }
 
 /* ---------- formulas ---------- */
-function formulas() {
+async function formulas() {
+  const [{ default: katex }] = await Promise.all([import('katex'), import('katex/dist/katex.min.css')]);
   const F: [string, string, string][] = [
     ['Log return', 'r_t = \\ln\\frac{P_t}{P_{t-1}}', 'Rates and spreads (FRED series) use first differences instead.'],
     ['Realized volatility & regime', '\\sigma_{20} = \\sqrt{A}\\,\\operatorname{sd}(r_{t-19..t}),\\quad q = \\hat F(\\sigma_{20})', 'A = 252 (365 for crypto). q is the percentile of today’s σ within the past year: calm < 0.25 ≤ normal ≤ 0.65 < elevated ≤ 0.9 < turbulent.'],
@@ -204,23 +204,44 @@ function formulas() {
     ['Momentum', 'M = \\frac{\\ln(P_t/P_{t-63})}{\\sigma_{63}\\sqrt{63}}', 'A volatility-scaled 3-month trend (a t-statistic of the drift).'],
     ['Anomaly z-scores', 'z = \\frac{r_t-\\mu_{60}}{\\sigma_{60}},\\quad z^{\\ast} = \\frac{r_t-\\tilde r}{1.4826\\,\\mathrm{MAD}}', 'Flag when |z| ≥ 2.5 or robust |z*| ≥ 3.'],
     ['Correlation distance', '\\rho_{ij} = \\operatorname{corr}_{60}(r_i,r_j),\\quad d_{ij} = \\sqrt{2(1-\\rho_{ij})}', 'Aligned on shared trading dates; the network shows the Mantegna minimum spanning tree.'],
-    ['Absorption ratio', 'AR = \\frac{\\sum_{k=1}^{\\lceil n/5\\rceil}\\lambda_k}{\\sum_{k=1}^{n}\\lambda_k}', 'Share of correlation-matrix variance in the top eigenvectors. High AR means markets move as one, so the system is fragile.'],
+    ['Absorption ratio', 'AR = \\frac{\\sum_{k=1}^{K}\\lambda_k}{\\sum_{k=1}^{n}\\lambda_k},\\ K = \\max(1,\\operatorname{round}(n/5))', 'Eigenvalues of the risky-asset correlation matrix by power iteration (n excludes macro and VIX). Share of correlation-matrix variance in the top eigenvectors. High AR means markets move as one, so the system is fragile.'],
     ['Lexicon sentiment', 's = \\frac{n_{+}-n_{-}}{\\sqrt{n_{+}+n_{-}+1}}', 'Finance word lists with two-word negation flipping. Positive above 0.2, negative below −0.2.'],
-    ['Sentinel score', 'S = 100\\sum_k w_k c_k,\\quad c_k\\in[0,1]', 'Components: volatility percentile (0.3), correlation and AR (0.2), negative-momentum breadth (0.2), anomaly share (0.15), and inverted news sentiment (0.15).'],
+    ['Sentinel score', 'S = \\operatorname{round}\\Big(100\\sum_k w_k c_k\\Big),\\quad c_k\\in[0,1]', 'Weights: volatility 0.3, correlation 0.2, breadth 0.2, anomalies 0.15, sentiment 0.15. Levels: green < 30 ≤ watch < 50 ≤ amber < 70 ≤ red.'],
+    ['Sentinel components', '\\begin{aligned} c_{\\text{vol}} &= \\overline{q}\\\\ c_{\\text{corr}} &= \\min\\!\\Big(1,\\ \\tfrac12\\cdot\\tfrac{\\overline{|\\rho|}}{0.6} + \\tfrac12 AR\\Big)\\\\ c_{\\text{breadth}} &= \\tfrac{\\#\\{M<0\\}}{n}\\\\ c_{\\text{anom}} &= \\min\\!\\Big(1,\\ \\tfrac{\\#\\text{anomalies}}{\\max(1,\\,0.2n)}\\Big)\\\\ c_{\\text{sent}} &= \\operatorname{clip}_{[0,1]}\\big(0.5-\\bar s\\big) \\end{aligned}', 'Averages run over risky assets, excluding macro series and VIX. ρ̄ is the mean absolute 60-day correlation between risky pairs, and s̄ is the mean headline score.'],
     ['Research composite (dossier)', 'S = 50 + 50\\tanh(0.4N + 0.35F + 0.25M)', 'From the Researcher’s seed file. N, F, M are analyst-judged inputs in [−1, 1], not fitted.'],
     ['News polarity with decay', 'N = \\frac{\\sum_i p_i r_i e^{-a_i/\\tau}}{\\sum_i r_i e^{-a_i/\\tau}},\\ \\tau = 7\\text{d}', 'Method used in the research dossier; r_i is source reliability.'],
   ];
-  $('#formulas').innerHTML = F.map(([t, tex, p]) => `<article><h3>${t}</h3>${katex.renderToString(tex, { displayMode: true, throwOnError: false, output: 'htmlAndMathml' })}<p>${p}</p></article>`).join('');
+  const el = $('#formulas');
+  el.innerHTML = F.map(([t, tex, p]) => `<article><h3>${t}</h3>${katex.renderToString(tex, { displayMode: true, throwOnError: false, output: 'htmlAndMathml' })}<p>${p}</p></article>`).join('');
+  el.querySelectorAll('.katex-display').forEach((d, i) => { d.setAttribute('tabindex', '0'); d.setAttribute('role', 'region'); d.setAttribute('aria-label', `Formula: ${F[i][0]}`); });
+  el.classList.remove('skel');
 }
 
+const unskel = (...ids: string[]) => ids.forEach((i) => $(i)?.classList.remove('skel'));
+function lazy(sel: string, fn: () => void) {
+  const el = $(sel); let done = false;
+  const run = () => { if (!done) { done = true; fn(); } };
+  new IntersectionObserver((e, o) => { if (e.some((x) => x.isIntersecting)) { o.disconnect(); run(); } }, { rootMargin: '300px' }).observe(el);
+}
+function marketDayAgeLimitH(now: Date) { const d = now.getUTCDay(); return d === 0 || d === 6 || d === 1 ? 72 : 24; }
 async function main() {
-  stars(); formulas();
+  lazy('#methods', () => { formulas(); });
+  addEventListener('load', () => ('requestIdleCallback' in window ? requestIdleCallback(() => stars()) : setTimeout(stars, 500)));
   try {
     const r = await fetch(`${import.meta.env.BASE_URL}data/snapshot.json`, { cache: 'no-cache' });
     const s: Snap = await r.json();
     const stale = s.status.filter((x) => !x.ok).length;
-    $('#updated').textContent = `Updated ${new Date(s.generatedAt).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' })}${stale ? ` · ${stale} source(s) using last good data` : ''}`;
-    sentinel(s); watchlist(s); constellation(s); network(s); scatter(s); news(s); dossierPanel(s);
+    const ageH = (Date.now() - Date.parse(s.generatedAt)) / 36e5, old = ageH > marketDayAgeLimitH(new Date());
+    const up = $('#updated');
+    up.textContent = `Updated ${new Date(s.generatedAt).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' })}${stale ? ` · ${stale} source(s) using last good data` : ''}${old ? ` · ⚠ data is ${Math.round(ageH)} h old` : ''}`;
+    if (old || stale) up.classList.add('stale-warn');
+    sentinel(s); unskel('#gauge', '#components');
+    watchlist(s); unskel('#wlwrap');
+    lazy('#constellation', () => constellation(s));
+    lazy('#network', () => network(s));
+    lazy('#regimes', () => scatter(s));
+    lazy('#news', () => { news(s); unskel('#newslist'); });
+    lazy('#dossier', () => { dossierPanel(s); unskel('#dos'); });
   } catch (e) { $('#updated').textContent = 'Data unavailable right now; showing methods only.'; console.error(e); }
 }
 main();

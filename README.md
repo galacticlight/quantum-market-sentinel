@@ -47,6 +47,10 @@ watchlist.json ──► scripts/fetch-data.mjs ──► public/data/snapshot.j
 | Headlines | MarketWatch, WSJ Markets, CNBC Markets, Federal Reserve RSS | none | Only the headline, source, link and date are stored, with no article text. Links go to the publisher. |
 | Research dossier | Researcher bot snapshot (2026-10-15) | n/a | Each figure carries its original source URL. Stooq was evaluated and dropped because it now serves a bot challenge. |
 
+**Data use:** the site shows a visible notice that third-party data is for personal, non-commercial, informational use only and must not be redistributed.
+
+**Under consideration:** a more permissively licensed equities/FX source to replace the Yahoo endpoint. Candidates are ECB reference rates via Frankfurter for FX, SEC EDGAR for fundamentals, or a keyed free tier such as Alpha Vantage through an optional `ALPHAVANTAGE_KEY` secret. Each provider's own terms will be checked before switching.
+
 Code is MIT licensed. Third-party data remains the property of its providers.
 
 ## Edit the watchlist
@@ -65,12 +69,21 @@ Push to `main` and the workflow rebuilds. The constellation's focus tickers are 
 
 ## Local development
 
+Requires **Node.js ≥ 20.19** (declared in `package.json` `engines`; Vite 8 needs 20.19+ or 22.12+). CI uses Node 22.
+
 ```bash
 npm ci
 npm run fetch   # writes public/data/snapshot.json (and .cache/series.json)
 npm run dev     # http://localhost:5173/quantum-market-sentinel/
 npm run build
 ```
+
+## Freshness, security and accessibility
+
+- **Stale-data warning:** the header turns amber if any source fell back to last good data, or if the snapshot is older than 24 h on market days (72 h across weekends and Mondays).
+- **CSP** (meta tag): `default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self' data:; connect-src 'self'; object-src 'none'; base-uri 'self'; form-action 'none'`. KaTeX and d3 run under it with no violations. Inline styles are needed for d3 and KaTeX layout.
+- **Performance:** space is reserved with skeletons to avoid layout shift. Below-the-fold panels (constellation, network, regimes, news, dossier, KaTeX) render lazily when scrolled near, KaTeX is code-split, and the starfield starts when the browser is idle.
+- A custom `404.html` is included.
 
 ## Known limitations
 

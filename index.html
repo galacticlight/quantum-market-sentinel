@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Quantum Market Sentinel · market-intelligence signals</title>
 <meta name="description" content="Open, futuristic market-intelligence dashboard: volatility regimes, correlation networks, entropy, Hurst, anomalies, and news sentiment. Informational only, not financial advice." />
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self' data:; connect-src 'self'; object-src 'none'; base-uri 'self'; form-action 'none'" />
 <meta name="theme-color" content="#05060f" />
 <meta property="og:title" content="Quantum Market Sentinel" />
 <meta property="og:description" content="Live quant signals across equities, indices, crypto, FX and macro. Not financial advice." />
@@ -17,18 +18,18 @@
   <div class="brand"><span class="logo" aria-hidden="true"></span><div><h1>Quantum Market Sentinel</h1><p class="sub">Open quant signals across equities · indices · crypto · FX · macro</p></div></div>
   <div class="meta"><span id="updated">Loading data…</span><button id="motion" class="btn" aria-pressed="false">Pause motion</button></div>
 </header>
-<div class="nfa" role="note"><strong>Not financial advice.</strong> For informational and educational purposes only. Not financial, investment, or tax advice. Data may be delayed or inaccurate. Signals describe past data and do not predict returns. Do your own research.</div>
+<aside class="nfa" aria-label="Disclaimer and data terms"><p><strong>Not financial advice.</strong> For informational and educational purposes only. Not financial, investment, or tax advice. Data may be delayed or inaccurate. Signals describe past data and do not predict returns. Do your own research.</p><p class="terms"><strong>Data terms:</strong> third-party market data is shown for personal, non-commercial, informational use only, under each provider’s terms (<a href="https://legal.yahoo.com/us/en/yahoo/terms/otos/index.html" rel="noopener noreferrer">Yahoo</a>, <a href="https://www.coingecko.com/en/api_terms" rel="noopener noreferrer">CoinGecko</a>, <a href="https://fred.stlouisfed.org/legal/" rel="noopener noreferrer">FRED</a>). Do not redistribute it. Headlines link to their publishers.</p></aside>
 <nav class="tabs" aria-label="Sections">
   <a href="#sentinel">Sentinel</a><a href="#watchlist">Watchlist</a><a href="#constellation">Constellation</a><a href="#network">Network</a><a href="#regimes">Regimes</a><a href="#news">News</a><a href="#dossier">Dossier</a><a href="#methods">Methods</a>
 </nav>
 <main id="main">
   <section id="sentinel" class="panel hero" aria-labelledby="h-sent">
     <h2 id="h-sent">Sentinel risk score</h2>
-    <div class="hero-grid"><div id="gauge"></div><div><p class="lede" id="sent-text"></p><ul id="components" class="comps"></ul></div><div><h3>Anomaly alerts</h3><ul id="alerts" class="alerts"></ul></div></div>
+    <div class="hero-grid"><div id="gauge" class="skel"></div><div><p class="lede" id="sent-text"></p><ul id="components" class="comps skel"></ul></div><div><h3>Anomaly alerts</h3><ul id="alerts" class="alerts"></ul></div></div>
   </section>
   <section id="watchlist" class="panel" aria-labelledby="h-wl"><h2 id="h-wl">Watchlist</h2>
     <div class="filters" role="group" aria-label="Filter by asset class" id="classFilter"></div>
-    <div class="tablewrap"><table id="wl"><caption class="sr">Watchlist metrics; column headers are sortable buttons</caption><thead></thead><tbody></tbody></table></div>
+    <div class="tablewrap skel" id="wlwrap"><table id="wl"><caption class="sr">Watchlist metrics; column headers are sortable buttons</caption><thead></thead><tbody></tbody></table></div>
   </section>
   <section id="constellation" class="panel" aria-labelledby="h-con"><h2 id="h-con">Quantum Sentiment Constellation</h2>
     <p class="hint">Focus tickers orbit a central news pulse. Orbit radius shrinks as live news + momentum turns positive; hue runs red → amber → green with the blended signal; link brightness is 60-day |ρ|. Orb size scales with log market cap from the research dossier.</p>
@@ -37,7 +38,8 @@
   </section>
   <section id="network" class="panel" aria-labelledby="h-net"><h2 id="h-net">Correlation network</h2>
     <p class="hint">Force graph of 60-day return correlations. Spring length is the Mantegna distance d = √(2(1−ρ)); bright edges are the minimum spanning tree, faint edges are |ρ| ≥ 0.6. Drag nodes; Tab to a node and press Enter to see its links.</p>
-    <div class="canvasbox"><svg id="net" role="img" aria-label="Correlation network graph"></svg></div>
+    <div class="canvasbox"><svg id="net" role="group" aria-label="Correlation network graph; each node is a focusable button"></svg></div>
+    <ul class="legend" aria-label="Node colors by asset class"><li><i style="background:#00f0ff"></i>equity</li><li><i style="background:#b388ff"></i>index</li><li><i style="background:#ffc24d"></i>crypto</li><li><i style="background:#3dffa8"></i>FX</li><li><i style="background:#ff8ad8"></i>macro</li><li><i class="ln"></i>MST edge, ρ ≥ 0</li><li><i class="ln neg"></i>negative ρ</li></ul>
     <p id="net-detail" aria-live="polite" class="detail"></p>
     <details><summary>Strongest correlations (table)</summary><table id="corr-tbl"><thead><tr><th>Pair</th><th>ρ (60d)</th><th>d</th></tr></thead><tbody></tbody></table></details>
   </section>
@@ -47,16 +49,16 @@
   </section>
   <section id="news" class="panel" aria-labelledby="h-news"><h2 id="h-news">News pulse</h2>
     <div class="filters" role="group" aria-label="Filter by sentiment" id="newsFilter"></div>
-    <ul id="newslist" class="news"></ul>
+    <ul id="newslist" class="news skel"></ul>
   </section>
   <section id="dossier" class="panel" aria-labelledby="h-dos"><h2 id="h-dos">Research dossier: focus tickers</h2>
     <p class="hint" id="dos-note"></p>
-    <div id="dos" class="dos"></div>
+    <div id="dos" class="dos skel"></div>
   </section>
-  <section id="methods" class="panel" aria-labelledby="h-met"><h2 id="h-met">Methods</h2><div id="formulas" class="formulas"></div></section>
+  <section id="methods" class="panel" aria-labelledby="h-met"><h2 id="h-met">Methods</h2><div id="formulas" class="formulas skel"></div></section>
 </main>
 <footer class="foot">
-  <p>Market data: Yahoo Finance chart endpoint (unofficial, delayed) · Crypto: <strong>Powered by CoinGecko</strong> · Macro: FRED®, Federal Reserve Bank of St. Louis · Headlines: MarketWatch, WSJ, CNBC, Federal Reserve RSS (headline + link only).</p>
+  <p>Market data: <a href="https://finance.yahoo.com/" rel="noopener noreferrer">Yahoo Finance</a> chart endpoint (unofficial, delayed; <a href="https://legal.yahoo.com/us/en/yahoo/terms/otos/index.html" rel="noopener noreferrer">terms</a>) · Crypto: <a href="https://www.coingecko.com/" rel="noopener noreferrer"><strong>Powered by CoinGecko</strong></a> · Macro: <a href="https://fred.stlouisfed.org/" rel="noopener noreferrer">FRED®, Federal Reserve Bank of St. Louis</a> · Headlines: <a href="https://www.marketwatch.com/" rel="noopener noreferrer">MarketWatch</a>, <a href="https://www.wsj.com/" rel="noopener noreferrer">WSJ</a>, <a href="https://www.cnbc.com/" rel="noopener noreferrer">CNBC</a>, <a href="https://www.federalreserve.gov/" rel="noopener noreferrer">Federal Reserve</a> RSS (headline + link only). Personal, non-commercial, informational use only.</p>
   <p>Built by Galacticlight with Grok Bots · <a href="https://github.com/galacticlight/quantum-market-sentinel">Source on GitHub</a> · Not financial advice.</p>
 </footer>
 <script type="module" src="/src/main.ts"></script>
