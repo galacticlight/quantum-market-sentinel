@@ -44,6 +44,8 @@ watchlist.json ──► scripts/fetch-data.mjs ──► public/data/snapshot.j
 | Equities, indices, FX, gold | Yahoo Finance chart endpoint `query1.finance.yahoo.com/v8/finance/chart` | none | Unofficial, undocumented endpoint. Yahoo's terms restrict use to personal, non-commercial purposes. Data is delayed. Polite request volume, about 20 calls per run. **Replace this source before any commercial use.** |
 | Crypto | CoinGecko public API `/coins/{id}/market_chart` | none | [API Terms](https://www.coingecko.com/en/api_terms): "Powered by CoinGecko" attribution is required (shown in the footer), cached data must be refreshed at least every 24h (the schedule does this), and access must not be resold or redistributed. An optional Demo key is a future improvement. |
 | Macro (DGS10, T10Y2Y, DFF) | FRED® `fredgraph.csv` download | none | FRED terms of use apply, with citation "Federal Reserve Bank of St. Louis". Only public-domain US government series are used. ICE BofA series were deliberately left out because they are third-party copyrighted. |
+| Live crypto ticks | Coinbase Exchange public market-data WebSocket | none | Public market data; display only. |
+| On-demand headlines | GDELT DOC 2.0 API | none | Free; cite GDELT. Max 1 request per 5 s. |
 | Headlines | MarketWatch, WSJ Markets, CNBC Markets, Federal Reserve RSS | none | Only the headline, source, link and date are stored, with no article text. Links go to the publisher. |
 | Research dossier | Researcher bot snapshot (2026-10-15) | n/a | Each figure carries its original source URL. Stooq was evaluated and dropped because it now serves a bot challenge. |
 
@@ -78,10 +80,24 @@ npm run dev     # http://localhost:5173/quantum-market-sentinel/
 npm run build
 ```
 
+## Live prices and news refresh (in the browser)
+
+| Assets | Live source | How |
+|---|---|---|
+| BTC, ETH, SOL | [Coinbase Exchange public WebSocket](https://docs.cdp.coinbase.com/exchange/websocket-feed/overview) `wss://ws-feed.exchange.coinbase.com`, `ticker` channel | Keyless. The UI updates at most once per second, with a green/red flash on each change. |
+| Crypto fallback | CoinGecko `/simple/price` (CORS `*`) | Polled once a minute only while the WebSocket is down. |
+| Stocks, SPY/QQQ, EUR/USD, USD/JPY | Optional: [Finnhub](https://finnhub.io) WebSocket with **the visitor's own free key** | Pasted into the "Live stock and FX prices" panel, stored only in that browser's `localStorage`, and sent only to Finnhub. No key is committed or deployed. |
+| Indices (^GSPC, ^NDX, ^VIX), DXY, gold, FRED macro | none | These show the scheduled snapshot prices. |
+
+- The header shows **LIVE · last tick hh:mm:ss**, or "Snapshot" or "Paused (tab hidden)". All feeds disconnect while the tab is hidden and reconnect, with backoff, when it's visible again.
+- **Why stocks aren't live by default:** Yahoo has no CORS, and every real-time stock feed found (Finnhub, Alpaca, Polygon, Twelve Data) needs a secret key. A static Pages site can't hold a secret. A shared live stock feed would need a small proxy, for example a free Cloudflare Worker holding a Finnhub key as a Worker secret. Its URL would go in `connect-src`, and the Worker would need its own account.
+- **Refresh news button:** fetches in parallel (1) the latest deployed `snapshot.json` with cache-busting, which picks up any newer scheduled or manual run, and (2) [GDELT DOC 2.0](https://blog.gdeltproject.org/gdelt-doc-2-0-api-debuts/) (keyless, CORS `*`) for focus-ticker and market headlines from the last 6 hours. New headlines are de-duplicated, scored in the browser with the same lexicon (`scripts/sentiment.mjs`), tagged, and marked "new". The button has a 60 s cooldown (GDELT asks for at most 1 request every 5 s) and shows loading, success and error states plus "updated X ago".
+- **Owner refresh:** in GitHub, go to **Actions → Refresh data and deploy → Run workflow** (`workflow_dispatch`). This re-runs the full fetch and redeploys. Nothing in the browser can trigger it, because that would need a token.
+
 ## Freshness, security and accessibility
 
 - **Stale-data warning:** the header turns amber if any source fell back to last good data, or if the snapshot is older than 24 h on market days (72 h across weekends and Mondays).
-- **CSP** (meta tag): `default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self' data:; connect-src 'self'; object-src 'none'; base-uri 'self'; form-action 'none'`. KaTeX and d3 run under it with no violations. Inline styles are needed for d3 and KaTeX layout.
+- **CSP** (meta tag): `default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self' data:; connect-src 'self' https://api.coingecko.com wss://ws-feed.exchange.coinbase.com https://api.gdeltproject.org wss://ws.finnhub.io; object-src 'none'; base-uri 'self'; form-action 'none'`. KaTeX and d3 run under it with no violations. Inline styles are needed for d3 and KaTeX layout.
 - **Performance:** space is reserved with skeletons to avoid layout shift. Below-the-fold panels (constellation, network, regimes, news, dossier, KaTeX) render lazily when scrolled near, KaTeX is code-split, and the starfield starts when the browser is idle.
 - A custom `404.html` is included.
 

@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Quantum Market Sentinel · market-intelligence signals</title>
 <meta name="description" content="Open, futuristic market-intelligence dashboard: volatility regimes, correlation networks, entropy, Hurst, anomalies, and news sentiment. Informational only, not financial advice." />
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self' data:; connect-src 'self'; object-src 'none'; base-uri 'self'; form-action 'none'" />
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self' data:; connect-src 'self' https://api.coingecko.com wss://ws-feed.exchange.coinbase.com https://api.gdeltproject.org wss://ws.finnhub.io; object-src 'none'; base-uri 'self'; form-action 'none'" />
 <meta name="theme-color" content="#05060f" />
 <meta property="og:title" content="Quantum Market Sentinel" />
 <meta property="og:description" content="Live quant signals across equities, indices, crypto, FX and macro. Not financial advice." />
@@ -16,7 +16,7 @@
 <canvas id="stars" aria-hidden="true"></canvas>
 <header class="top">
   <div class="brand"><span class="logo" aria-hidden="true"></span><div><h1>Quantum Market Sentinel</h1><p class="sub">Open quant signals across equities · indices · crypto · FX · macro</p></div></div>
-  <div class="meta"><span id="updated">Loading data…</span><button id="motion" class="btn" aria-pressed="false">Pause motion</button></div>
+  <div class="meta"><div><span id="live" class="live off" role="status" aria-live="off"><i aria-hidden="true"></i><span id="live-text">Snapshot</span></span><span id="updated">Loading data…</span></div><button id="motion" class="btn" aria-pressed="false">Pause motion</button></div>
 </header>
 <aside class="nfa" aria-label="Disclaimer and data terms"><p><strong>Not financial advice.</strong> For informational and educational purposes only. Not financial, investment, or tax advice. Data may be delayed or inaccurate. Signals describe past data and do not predict returns. Do your own research.</p><p class="terms"><strong>Data terms:</strong> third-party market data is shown for personal, non-commercial, informational use only, under each provider’s terms (<a href="https://legal.yahoo.com/us/en/yahoo/terms/otos/index.html" rel="noopener noreferrer">Yahoo</a>, <a href="https://www.coingecko.com/en/api_terms" rel="noopener noreferrer">CoinGecko</a>, <a href="https://fred.stlouisfed.org/legal/" rel="noopener noreferrer">FRED</a>). Do not redistribute it. Headlines link to their publishers.</p></aside>
 <nav class="tabs" aria-label="Sections">
@@ -29,6 +29,11 @@
   </section>
   <section id="watchlist" class="panel" aria-labelledby="h-wl"><h2 id="h-wl">Watchlist</h2>
     <div class="filters" role="group" aria-label="Filter by asset class" id="classFilter"></div>
+    <details class="byok"><summary>Live stock and FX prices (optional, uses your own free Finnhub key)</summary>
+      <p class="hint">Crypto ticks live without any key. Stocks and FX need a feed that requires a key, which can’t be published on a static site. If you have a free <a href="https://finnhub.io/register" rel="noopener noreferrer">Finnhub</a> key, paste it here. It is stored only in this browser (localStorage) and sent only to Finnhub.</p>
+      <form id="fh-form"><label for="fh-key">Finnhub API key</label> <input id="fh-key" type="password" autocomplete="off" spellcheck="false"> <button class="btn" type="submit">Save &amp; connect</button> <button class="btn" type="button" id="fh-clear">Remove key</button></form>
+      <p id="fh-status" class="hint" role="status"></p>
+    </details>
     <div class="tablewrap skel" id="wlwrap"><table id="wl"><caption class="sr">Watchlist metrics; column headers are sortable buttons</caption><thead></thead><tbody></tbody></table></div>
   </section>
   <section id="constellation" class="panel" aria-labelledby="h-con"><h2 id="h-con">Quantum Sentiment Constellation</h2>
@@ -48,7 +53,7 @@
     <div class="canvasbox"><svg id="scatter" role="img" aria-label="Scatter of Hurst exponent versus entropy per asset"></svg></div>
   </section>
   <section id="news" class="panel" aria-labelledby="h-news"><h2 id="h-news">News pulse</h2>
-    <div class="filters" role="group" aria-label="Filter by sentiment" id="newsFilter"></div>
+    <div class="newsbar"><div class="filters" role="group" aria-label="Filter by sentiment" id="newsFilter"></div><div class="refresh"><button id="news-refresh" class="btn">↻ Refresh news</button><span id="news-status" role="status" aria-live="polite"></span></div></div>
     <ul id="newslist" class="news skel"></ul>
   </section>
   <section id="dossier" class="panel" aria-labelledby="h-dos"><h2 id="h-dos">Research dossier: focus tickers</h2>

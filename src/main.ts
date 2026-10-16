@@ -1,12 +1,13 @@
 import './style.css';
 import * as d3 from 'd3';
 import dossier from './dossier.json';
+import { setupLive, setupNewsRefresh } from './live';
 
-type M = { last: number; asOf: string; ch1d: number | null; ch5d: number | null; ch21d: number | null; vol20: number | null; volPct: number; regime: string; entropy: number | null; hurst: number | null; momentum: number | null; z: number | null; robustZ: number | null; anomaly: boolean; spark: number[] };
-type Asset = { id: string; name: string; class: string; source: string; symbol: string };
-type News = { title: string; link: string; source: string; date: string | null; score: number; label: string; tags: string[] };
+export type M = { last: number; asOf: string; ch1d: number | null; ch5d: number | null; ch21d: number | null; vol20: number | null; volPct: number; regime: string; entropy: number | null; hurst: number | null; momentum: number | null; z: number | null; robustZ: number | null; anomaly: boolean; spark: number[] };
+export type Asset = { id: string; name: string; class: string; source: string; symbol: string };
+export type News = { title: string; link: string; source: string; date: string | null; score: number; label: string; tags: string[] };
 type Edge = { a: string; b: string; rho: number; d: number; mst?: boolean };
-type Snap = { generatedAt: string; assets: Asset[]; metrics: Record<string, M>; news: News[]; correlation: { window: number; edges: Edge[] }; sentinel: { score: number; level: string; components: Record<string, number>; weights: Record<string, number>; avgNewsSentiment: number; absorptionRatio: number; absorptionK: number }; status: { id: string; ok: boolean; stale?: boolean }[] };
+export type Snap = { generatedAt: string; assets: Asset[]; metrics: Record<string, M>; news: News[]; correlation: { window: number; edges: Edge[] }; sentinel: { score: number; level: string; components: Record<string, number>; weights: Record<string, number>; avgNewsSentiment: number; absorptionRatio: number; absorptionK: number }; status: { id: string; ok: boolean; stale?: boolean }[] };
 
 const $ = <T extends Element = HTMLElement>(s: string) => document.querySelector(s) as T;
 const esc = (s: string) => s.replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]!);
@@ -79,7 +80,7 @@ function watchlist(s: Snap) {
     const rows = s.assets.filter((a) => filter === 'all' || a.class === filter).sort((a, b) => { const x = get(a), y = get(b); return (x == null ? 1 : y == null ? -1 : x > y ? 1 : x < y ? -1 : 0) * dir; });
     $('#wl tbody').innerHTML = rows.map((a) => { const m = s.metrics[a.id], rate = a.class === 'macro';
       const ch = (x: number | null) => (rate ? (x == null ? '–' : `${x >= 0 ? '+' : ''}${(x * 100).toFixed(0)} bp`) : pct(x));
-      return `<tr><td><strong>${esc(a.id)}</strong><br><small style="color:var(--muted)">${esc(a.name)}</small></td><td>${a.class}</td><td class="num">${m.last.toLocaleString(undefined, { maximumFractionDigits: m.last < 10 ? 4 : 2 })}${rate ? '%' : ''}</td><td class="num ${cls(m.ch1d)}">${ch(m.ch1d)}</td><td class="num ${cls(m.ch21d)}">${ch(m.ch21d)}</td><td>${spark(m.spark.filter((x) => x != null))}</td><td class="num">${m.vol20 == null ? '–' : (m.vol20 * 100).toFixed(0) + '%'}</td><td><span class="chip ${m.regime}">${m.regime}</span></td><td class="num ${cls(m.momentum)}">${fx(m.momentum)}</td><td class="num">${fx(m.hurst)}</td><td class="num">${fx(m.entropy)}</td><td class="num ${m.anomaly ? 'neg' : ''}">${fx(m.z)}${m.anomaly ? ' ⚠' : ''}</td></tr>`; }).join('');
+      return `<tr><td><strong>${esc(a.id)}</strong><br><small style="color:var(--muted)">${esc(a.name)}</small></td><td>${a.class}</td><td class="num" data-live-last="${a.id}">${m.last.toLocaleString(undefined, { maximumFractionDigits: m.last < 10 ? 4 : 2 })}${rate ? '%' : ''}</td><td class="num ${cls(m.ch1d)}" data-live-ch="${a.id}">${ch(m.ch1d)}</td><td class="num ${cls(m.ch21d)}">${ch(m.ch21d)}</td><td>${spark(m.spark.filter((x) => x != null))}</td><td class="num">${m.vol20 == null ? '–' : (m.vol20 * 100).toFixed(0) + '%'}</td><td><span class="chip ${m.regime}">${m.regime}</span></td><td class="num ${cls(m.momentum)}">${fx(m.momentum)}</td><td class="num">${fx(m.hurst)}</td><td class="num">${fx(m.entropy)}</td><td class="num ${m.anomaly ? 'neg' : ''}">${fx(m.z)}${m.anomaly ? ' ⚠' : ''}</td></tr>`; }).join('');
   };
   thead.onclick = (e) => { const b = (e.target as HTMLElement).closest('button'); if (!b) return; const k = b.dataset.k!; dir = sortKey === k ? -dir : 1; sortKey = k; render(); (thead.querySelector(`button[data-k="${k}"]`) as HTMLElement)?.focus(); };
   render();
@@ -169,13 +170,17 @@ function scatter(s: Snap) {
 }
 
 /* ---------- news ---------- */
+let renderNews: (() => void) | null = null;
 function news(s: Snap) {
   let f = 'all';
-  const counts = d3.rollup(s.news, (v) => v.length, (n) => n.label);
-  $('#newsFilter').innerHTML = ['all', 'positive', 'neutral', 'negative'].map((k) => `<button class="btn" data-f="${k}" aria-pressed="${k === 'all'}">${k} (${k === 'all' ? s.news.length : counts.get(k) ?? 0})</button>`).join('');
-  const render = () => { $('#newslist').innerHTML = s.news.filter((n) => f === 'all' || n.label === f).map((n) => `<li><span class="s-${n.label} num">${n.score >= 0 ? '+' : ''}${n.score.toFixed(2)}<br><small>${n.label}</small></span><span><a href="${esc(safeUrl(n.link))}" rel="noopener noreferrer" target="_blank">${esc(n.title)}</a><br><span class="src">${esc(n.source)}${n.date ? ' · ' + new Date(n.date).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' }) : ''}${n.tags.length ? ' · ' + n.tags.map(esc).join(', ') : ''}</span></span></li>`).join('') || '<li>No headlines in this filter.</li>'; };
-  $('#newsFilter').onclick = (e) => { const b = (e.target as HTMLElement).closest('button'); if (!b) return; f = b.dataset.f!; document.querySelectorAll('#newsFilter button').forEach((x) => x.setAttribute('aria-pressed', String(x === b))); render(); };
-  render();
+  renderNews = () => {
+    const counts = d3.rollup(s.news, (v) => v.length, (n) => n.label);
+    $('#newsFilter').innerHTML = ['all', 'positive', 'neutral', 'negative'].map((k) => `<button class="btn" data-f="${k}" aria-pressed="${k === f}">${k} (${k === 'all' ? s.news.length : counts.get(k) ?? 0})</button>`).join('');
+    $('#newslist').innerHTML = s.news.filter((n) => f === 'all' || n.label === f).map((n) => `<li${(n as any).fresh ? ' class="fresh"' : ''}><span class="s-${n.label} num">${n.score >= 0 ? '+' : ''}${n.score.toFixed(2)}<br><small>${n.label}</small></span><span><a href="${esc(safeUrl(n.link))}" rel="noopener noreferrer" target="_blank">${esc(n.title)}</a><br><span class="src">${esc(n.source)}${n.date ? ' · ' + new Date(n.date).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' }) : ''}${n.tags.length ? ' · ' + n.tags.map(esc).join(', ') : ''}${(n as any).fresh ? ' · <strong class="newtag">new</strong>' : ''}</span></span></li>`).join('') || '<li>No headlines in this filter.</li>';
+  };
+  $('#newsFilter').onclick = (e) => { const b = (e.target as HTMLElement).closest('button'); if (!b) return; f = b.dataset.f!; renderNews!(); ($(`#newsFilter button[data-f="${f}"]`) as HTMLElement)?.focus(); };
+  renderNews();
+  setupNewsRefresh(s, () => renderNews!());
 }
 
 /* ---------- research dossier ---------- */
@@ -237,6 +242,7 @@ async function main() {
     if (old || stale) up.classList.add('stale-warn');
     sentinel(s); unskel('#gauge', '#components');
     watchlist(s); unskel('#wlwrap');
+    setupLive(s);
     lazy('#constellation', () => constellation(s));
     lazy('#network', () => network(s));
     lazy('#regimes', () => scatter(s));
